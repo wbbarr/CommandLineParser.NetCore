@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageTags>command line;command line arguments; command line parser;.NET Core 2.0;console</PackageTags>
+    <PackageReleaseNotes>Version 0.1.0-alpha</PackageReleaseNotes>
+    <PackageProjectUrl>https://wbbarr.com/commandlineparser-netcore</PackageProjectUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl></RepositoryUrl>
+  </PropertyGroup>
+
+</Project>
