@@ -26,10 +26,11 @@ namespace wbbarr.CommandLineParserNetCore.Tests
             Description = "Does some integer test things.",
             IsRequired = true,
         };
-
-        public static string GetFullArgumentName(this CommandLineArgument argument)
+        public static readonly CommandLineArgument StringOptionalTestArgument = new CommandLineArgument<string>()
         {
-            return $"--{argument.Name}";
-        }
+            Name = "teststring",
+            Description = "Does optional test things",
+            IsRequired = false,
+        };
     }
 }

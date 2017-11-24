@@ -73,5 +73,27 @@ namespace wbbarr.CommandLineParserNetCore.Tests
 
             commandLineParser.ParseArguments(sampleArgs, throwOnUnrecognizedArgument: false);
         }
+
+        [TestMethod]
+        [ExpectedException(typeof(MissingRequiredArgumentException))]
+        public void ParseArguments_Throws_When_Missing_Required_Argument()
+        {
+            var commandLineParser = new CommandLineParser();
+            commandLineParser.AddArgument(NamedParameterTestConstants.StringRequiredTestArgument);
+            string[] sampleArgs = new string[] { "--notexpected", "value" };
+
+            commandLineParser.ParseArguments(sampleArgs);
+        }
+
+        [TestMethod]
+        public void ParseArguments_Doesnt_Throw_When_Missing_Optional_Argument()
+        {
+            var commandLineParser = new CommandLineParser();
+            commandLineParser.AddArgument(NamedParameterTestConstants.StringOptionalTestArgument);
+            string[] sampleArgs = new string[] { "--notexpected", "value" };
+
+            commandLineParser.ParseArguments(sampleArgs);
+            Assert.IsNull(commandLineParser.GetArgument<string>(NamedParameterTestConstants.StringOptionalTestArgument.Name));
+        }
     }
 }

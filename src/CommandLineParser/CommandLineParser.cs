@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using wbbarr.CommandLineParserNetCore.ArgumentParsers;
 
 namespace wbbarr.CommandLineParserNetCore
@@ -11,11 +12,13 @@ namespace wbbarr.CommandLineParserNetCore
 
         private Dictionary<Type, ArgumentParser> argumentTypeParsers;
         private Dictionary<string, ICommandLineArgument> arguments;
+        private HashSet<string> requiredArguments;
 
         public CommandLineParser()
         {
             arguments = new Dictionary<string, ICommandLineArgument>();
             argumentTypeParsers = new Dictionary<Type, ArgumentParser>();
+            requiredArguments = new HashSet<string>();
             this.RegisterArgumentParser<string>(StringArgumentParser.Instance);
             this.RegisterArgumentParser<bool>(BooleanArgumentParser.Instance);
             this.RegisterArgumentParser<int>(IntegerArgumentParser.Instance);
@@ -43,7 +46,16 @@ namespace wbbarr.CommandLineParserNetCore
 
                     ArgumentParser parser = argumentTypeParsers[argument.ArgumentType];
                     argument.Value = parser.Parse(args[++i]);
+                    if (requiredArguments.Contains(shortenedArgumentName))
+                    {
+                        requiredArguments.Remove(shortenedArgumentName);
+                    }
                 }
+            }
+
+            if (requiredArguments.Any())
+            {
+                throw new MissingRequiredArgumentException();
             }
         }
 
@@ -78,6 +90,10 @@ namespace wbbarr.CommandLineParserNetCore
             }
 
             arguments[argument.Name] = argument;
+            if (argument.IsRequired)
+            {
+                requiredArguments.Add(argument.Name);
+            }
         }
 
         public void RegisterArgumentParser<T>(ArgumentParser parser)
