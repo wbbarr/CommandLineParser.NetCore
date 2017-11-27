@@ -24,8 +24,10 @@ namespace wbbarr.CommandLineParserNetCore
             this.RegisterArgumentParser<int>(IntegerArgumentParser.Instance);
         }
 
-        public void ParseArguments(string[] args, bool throwOnUnrecognizedArgument = false)
+        public ParserResult ParseArguments(string[] args, bool errorOnUnrecognizedArgument = false)
         {
+            ParserResult result = new ParserResult();
+
             for (int i = 0; i < args.Length; i++)
             {
                 string argumentName = args[i];
@@ -35,11 +37,16 @@ namespace wbbarr.CommandLineParserNetCore
                     string shortenedArgumentName = argumentName.Substring(DefaultFullArgumentNamePrefix.Length);
 
                     ICommandLineArgument argument;
-                    if (!arguments.TryGetValue(shortenedArgumentName, out argument) && throwOnUnrecognizedArgument)
+                    if (!arguments.TryGetValue(shortenedArgumentName, out argument) && errorOnUnrecognizedArgument)
                     {
-                        throw new UnrecognizedArgumentException($"An unrecognized argument '{argumentName}' was provided.");
+                        result.Errors.Add(new ParserError
+                        {
+                            ErrorType = ParserErrorType.UnrecognizedArgument,
+                            ErrorDetails = $"An unrecognized argument '{argumentName}' was provided."
+                        });
                     }
-                    else if (argument == null)
+                    
+                    if (argument == null)
                     {
                         continue;
                     }
@@ -53,26 +60,16 @@ namespace wbbarr.CommandLineParserNetCore
                 }
             }
 
-            if (requiredArguments.Any())
+            foreach (var missingRequiredArgument in requiredArguments)
             {
-                throw new MissingRequiredArgumentException();
-            }
-        }
-
-        public T GetArgument<T>(string name)
-        {
-            if (!arguments.ContainsKey(name))
-            {
-                throw new ArgumentException($"Invalid argument name {name} specified.", nameof(name));
+                result.Errors.Add(new ParserError{
+                    ErrorType = ParserErrorType.MissingRequiredParameter,
+                    Argument = arguments[missingRequiredArgument]
+                    });
             }
 
-            ICommandLineArgument argument = arguments[name];
-            if (typeof(T) != argument.ArgumentType)
-            {
-                throw new InvalidOperationException($"Invalid type requested for argument {name} which has type {argument.ArgumentType}");
-            }
-
-            return (T)argument.Value;
+            result.Arguments = arguments;
+            return result;
         }
 
         public void AddArgument(ICommandLineArgument argument)

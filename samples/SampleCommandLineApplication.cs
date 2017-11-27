@@ -17,9 +17,9 @@ namespace wbbarr.CommandLineParserNetCore.Samples
             commandLineParser.AddArgument(foobarArgument);
 
             string[] sampleArgs = new string[] { "--foobar", "magic" };
-            commandLineParser.ParseArguments(sampleArgs);
+            var result = commandLineParser.ParseArguments(sampleArgs);
             
-            string foobar = commandLineParser.GetArgument<string>("foobar");
+            string foobar = result.GetArgument<string>("foobar");
             Console.WriteLine(foobar);
         }
     }

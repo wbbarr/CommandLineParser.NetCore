@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace wbbarr.CommandLineParserNetCore.Tests
@@ -14,8 +15,8 @@ namespace wbbarr.CommandLineParserNetCore.Tests
 
             string[] sampleArgs = new string[] { stringRequiredTestArgument.GetFullArgumentName(), "magic" };
 
-            commandLineParser.ParseArguments(sampleArgs);
-            string test = commandLineParser.GetArgument<string>(stringRequiredTestArgument.Name);
+            var results = commandLineParser.ParseArguments(sampleArgs);
+            string test = results.GetArgument<string>(stringRequiredTestArgument.Name);
 
             Assert.AreEqual("magic", test);
         }
@@ -34,9 +35,9 @@ namespace wbbarr.CommandLineParserNetCore.Tests
                 stringRequiredSecondArgument.GetFullArgumentName(), "alsomagic"
             };
 
-            commandLineParser.ParseArguments(sampleArgs);
-            string test = commandLineParser.GetArgument<string>(stringRequiredTestArgument.Name);
-            string second = commandLineParser.GetArgument<string>(stringRequiredSecondArgument.Name);
+            var results = commandLineParser.ParseArguments(sampleArgs);
+            string test = results.GetArgument<string>(stringRequiredTestArgument.Name);
+            string second = results.GetArgument<string>(stringRequiredSecondArgument.Name);
 
             Assert.AreEqual("magic", test);
             Assert.AreEqual("alsomagic", second);
@@ -50,19 +51,23 @@ namespace wbbarr.CommandLineParserNetCore.Tests
             commandLineParser.AddArgument(boolRequiredTestArgument);
             string[] sampleArgs = new string[] { boolRequiredTestArgument.GetFullArgumentName(), "true" };
 
-            commandLineParser.ParseArguments(sampleArgs);
+            var result = commandLineParser.ParseArguments(sampleArgs);
 
-            Assert.IsTrue(commandLineParser.GetArgument<bool>(boolRequiredTestArgument.Name));
+            Assert.IsTrue(result.GetArgument<bool>(boolRequiredTestArgument.Name));
         }
 
         [TestMethod]
-        [ExpectedException(typeof(UnrecognizedArgumentException))]
         public void ParseArguments_Throws_When_UnexpectedArgument_And_Flag_Set()
         {
             var commandLineParser = new CommandLineParser();
             string[] sampleArgs = new string[] { "--notexpected", "value" };
 
-            commandLineParser.ParseArguments(sampleArgs, throwOnUnrecognizedArgument: true);
+            var result = commandLineParser.ParseArguments(sampleArgs, errorOnUnrecognizedArgument: true);
+
+            Assert.IsTrue(result.HasError);
+            Assert.AreEqual(1, result.Errors.Count);
+            var error = result.Errors.First();
+            Assert.AreEqual(ParserErrorType.UnrecognizedArgument, error.ErrorType);
         }
 
         [TestMethod]
@@ -71,18 +76,19 @@ namespace wbbarr.CommandLineParserNetCore.Tests
             var commandLineParser = new CommandLineParser();
             string[] sampleArgs = new string[] { "--notexpected", "value" };
 
-            commandLineParser.ParseArguments(sampleArgs, throwOnUnrecognizedArgument: false);
+            commandLineParser.ParseArguments(sampleArgs, errorOnUnrecognizedArgument: false);
         }
 
         [TestMethod]
-        [ExpectedException(typeof(MissingRequiredArgumentException))]
         public void ParseArguments_Throws_When_Missing_Required_Argument()
         {
             var commandLineParser = new CommandLineParser();
             commandLineParser.AddArgument(NamedParameterTestConstants.StringRequiredTestArgument);
             string[] sampleArgs = new string[] { "--notexpected", "value" };
 
-            commandLineParser.ParseArguments(sampleArgs);
+            var result = commandLineParser.ParseArguments(sampleArgs);
+            Assert.IsTrue(result.HasError);
+            Assert.AreEqual(ParserErrorType.MissingRequiredParameter, result.Errors.First().ErrorType);
         }
 
         [TestMethod]
@@ -92,8 +98,8 @@ namespace wbbarr.CommandLineParserNetCore.Tests
             commandLineParser.AddArgument(NamedParameterTestConstants.StringOptionalTestArgument);
             string[] sampleArgs = new string[] { "--notexpected", "value" };
 
-            commandLineParser.ParseArguments(sampleArgs);
-            Assert.IsNull(commandLineParser.GetArgument<string>(NamedParameterTestConstants.StringOptionalTestArgument.Name));
+            var result = commandLineParser.ParseArguments(sampleArgs);
+            Assert.IsNull(result.GetArgument<string>(NamedParameterTestConstants.StringOptionalTestArgument.Name));
         }
     }
 }
