@@ -7,7 +7,7 @@ namespace wbbarr.CommandLineParserNetCore
 {
     public class CommandLineParser
     {
-        private const string DefaultSwitchPrefix = "-";
+        private const string DefaultArgumentCharPrefix = "-";
         private const string DefaultFullArgumentNamePrefix = "--";
 
         private Dictionary<Type, ArgumentParser> argumentTypeParsers;
@@ -45,14 +45,39 @@ namespace wbbarr.CommandLineParserNetCore
                             ErrorDetails = $"An unrecognized argument '{argumentName}' was provided."
                         });
                     }
-                    
+
                     if (argument == null)
                     {
                         continue;
                     }
 
-                    ArgumentParser parser = argumentTypeParsers[argument.ArgumentType];
-                    argument.Value = parser.Parse(args[++i]);
+                    CommandLineArgument concreteArgument = argument.ToCommandLineArgument();
+                    if (argument.IsSwitch)
+                    {
+                        concreteArgument.Value = true;
+                    }
+                    else
+                    {
+                        ArgumentParser parser = argumentTypeParsers[argument.ArgumentType];
+                        string argumentValue = args[++i];
+
+                        try
+                        {
+                            concreteArgument.Value = parser.Parse(argumentValue);
+                        }
+                        catch (Exception ex)
+                        {
+                            result.Errors.Add(new ParserError
+                            {
+                                ErrorType = ParserErrorType.InvalidInput,
+                                ErrorDetails = $"An Exception occurred when parsing {argument.Name}.",
+                                ArgumentInput = argumentValue,
+                                Argument = argument,
+                                ParserException = ex
+                            });
+                        }
+                    }
+
                     if (requiredArguments.Contains(shortenedArgumentName))
                     {
                         requiredArguments.Remove(shortenedArgumentName);
@@ -62,10 +87,11 @@ namespace wbbarr.CommandLineParserNetCore
 
             foreach (var missingRequiredArgument in requiredArguments)
             {
-                result.Errors.Add(new ParserError{
+                result.Errors.Add(new ParserError
+                {
                     ErrorType = ParserErrorType.MissingRequiredParameter,
                     Argument = arguments[missingRequiredArgument]
-                    });
+                });
             }
 
             result.Arguments = arguments;

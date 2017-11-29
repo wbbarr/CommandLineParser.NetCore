@@ -80,7 +80,7 @@ namespace wbbarr.CommandLineParserNetCore.Tests
         }
 
         [TestMethod]
-        public void ParseArguments_Throws_When_Missing_Required_Argument()
+        public void ParseArguments_HasError_When_Missing_Required_Argument()
         {
             var commandLineParser = new CommandLineParser();
             commandLineParser.AddArgument(NamedParameterTestConstants.StringRequiredTestArgument);
@@ -92,7 +92,7 @@ namespace wbbarr.CommandLineParserNetCore.Tests
         }
 
         [TestMethod]
-        public void ParseArguments_Doesnt_Throw_When_Missing_Optional_Argument()
+        public void ParseArguments_Doesnt_HaveError_When_Missing_Optional_Argument()
         {
             var commandLineParser = new CommandLineParser();
             commandLineParser.AddArgument(NamedParameterTestConstants.StringOptionalTestArgument);
@@ -100,6 +100,48 @@ namespace wbbarr.CommandLineParserNetCore.Tests
 
             var result = commandLineParser.ParseArguments(sampleArgs);
             Assert.IsNull(result.GetArgument<string>(NamedParameterTestConstants.StringOptionalTestArgument.Name));
+        }
+
+        [TestMethod]
+        public void ParseArguments_HasError_When_Typecasting_Fails()
+        {
+            var commandLineParser = new CommandLineParser();
+            commandLineParser.AddArgument(NamedParameterTestConstants.IntRequiredTestArgument);
+            string[] sampleArgs = new string[] { "--testint", "notanint" };
+
+            var result = commandLineParser.ParseArguments(sampleArgs);
+            
+            Assert.IsTrue(result.HasError);
+            Assert.AreEqual(1, result.Errors.Count);
+            var error = result.Errors.First();
+            Assert.AreEqual(ParserErrorType.InvalidInput, error.ErrorType);
+            Assert.IsNotNull(error.ParserException);
+        }
+
+        [TestMethod]
+        public void ParseArguments_Returns_DefaultValue_When_Value_Not_Provided()
+        {
+            var commandLineParser = new CommandLineParser();
+            CommandLineArgument parameter = NamedParameterTestConstants.StringOptionalTestArgumentWithDefault;
+            commandLineParser.AddArgument(parameter);
+            string[] sampleArgs = new string[0];
+            
+            var result = commandLineParser.ParseArguments(sampleArgs);
+
+            Assert.IsFalse(result.HasError);
+            Assert.AreEqual(parameter.DefaultValue, result.GetArgument<string>(parameter.Name));
+        }
+
+        [TestMethod]
+        public void ParseArgument_Parses_Switch()
+        {
+            var commandLineParser = new CommandLineParser();
+            commandLineParser.AddArgument(SwitchTestConstants.ValidSwitch);
+            string[] sampleArgs = new string[] {"--switch"};
+
+            var result = commandLineParser.ParseArguments(sampleArgs);
+            Assert.IsFalse(result.HasError);
+            Assert.IsTrue(result.GetArgument<bool>(SwitchTestConstants.ValidSwitch.Name));
         }
     }
 }

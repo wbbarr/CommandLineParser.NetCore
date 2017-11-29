@@ -33,13 +33,13 @@ namespace wbbarr.CommandLineParserNetCore
                 throw new ArgumentException($"Invalid argument name {name} specified.", nameof(name));
             }
 
-            ICommandLineArgument argument = arguments[name];
+            CommandLineArgument argument = arguments[name].ToCommandLineArgument();
             if (typeof(T) != argument.ArgumentType)
             {
                 throw new InvalidOperationException($"Invalid type requested for argument {name} which has type {argument.ArgumentType}");
             }
 
-            return (T)argument.Value;
+            return (T)(argument.IsParsed ? argument.Value : argument.DefaultValue);
         }
     }
 }

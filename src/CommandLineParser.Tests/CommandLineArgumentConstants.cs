@@ -1,5 +1,21 @@
 namespace wbbarr.CommandLineParserNetCore.Tests
 {
+    public static class SwitchTestConstants
+    {
+        public static readonly CommandLineSwitch ValidSwitch = new CommandLineSwitch()
+        {
+            Name = "switch",
+            Description = "A valid command line switch",
+        };
+
+        public static readonly CommandLineSwitch ValidSwitchWithChar = new CommandLineSwitch()
+        {
+            Name = "flagswitch",
+            Description = "A valid command line switch with a single char flag",
+            Flag = 'f'
+        };
+    }
+
     public static class NamedParameterTestConstants
     {
         public static readonly CommandLineArgument StringRequiredTestArgument = new CommandLineArgument<string>()
@@ -31,6 +47,13 @@ namespace wbbarr.CommandLineParserNetCore.Tests
             Name = "teststring",
             Description = "Does optional test things",
             IsRequired = false,
+        };
+        public static readonly CommandLineArgument StringOptionalTestArgumentWithDefault = new CommandLineArgument<string>()
+        {
+            Name = "defaultteststring",
+            Description = "Does optional test things",
+            IsRequired = false,
+            DefaultValue = "TestDefaultValue",
         };
     }
 }

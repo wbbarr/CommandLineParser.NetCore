@@ -6,5 +6,6 @@ namespace wbbarr.CommandLineParserNetCore
         MissingRequiredParameter,
         InvalidInput,
         UnrecognizedArgument,
+        MissingInput,
     }
 }
